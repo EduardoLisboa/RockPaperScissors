@@ -43,6 +43,20 @@ class Item:
     def win(self, other):
         return True if other.name == self.beats else False
     
+    def move(self):
+        self.x += randint(-5, 5)
+        self.y += randint(-5, 5)
+
+        if self.x <= 0:
+            self.x = 0
+        elif self.x >= WIDTH - self.width:
+            self.x = WIDTH - self.width
+        
+        if self.y <= 0:
+            self.y = 0
+        elif self.y >= HEIGHT - self.height:
+            self.y = HEIGHT - self.height
+    
     def __eq__(self, other):
         return self.name == other.name
 
@@ -57,14 +71,14 @@ def generate_items(qtd_items: int) -> list[Item]:
     for name in ['r', 'p', 's']:
         for _ in range(qtd_items):
             if name == 'r':
-                x = randint(25, WIDTH//3 - ITEM_WIDTH)
-                y = randint(2*(HEIGHT//3), HEIGHT - ITEM_HEIGHT)
+                x = randint(ITEM_WIDTH, WIDTH//2 - 2*ITEM_WIDTH)
+                y = randint(HEIGHT//2, HEIGHT - 2*ITEM_HEIGHT)
             elif name == 'p':
-                x = randint(WIDTH//3, 2*(WIDTH//3) - ITEM_WIDTH)
-                y = randint(0, HEIGHT//3 - ITEM_HEIGHT)
+                x = randint(WIDTH//3, 2*(WIDTH//3) - 2*ITEM_WIDTH)
+                y = randint(0, HEIGHT//2 - 2*ITEM_HEIGHT)
             else:
-                x = randint(2*(WIDTH//3), WIDTH - ITEM_WIDTH)
-                y = randint(2*(HEIGHT//3), HEIGHT - ITEM_HEIGHT)
+                x = randint(WIDTH//2, WIDTH - 2*ITEM_WIDTH)
+                y = randint(HEIGHT//2, HEIGHT - 2*ITEM_HEIGHT)
             
             items[name].append(Item(name, x, y))
     
@@ -75,14 +89,18 @@ def generate_items(qtd_items: int) -> list[Item]:
     return items_list
 
 
+def play(items: list[Item]) -> None:
+    for item in items:
+        item.move()
+
+
 def main():
     run = True
     clock = pygame.time.Clock()
 
 
-    items = generate_items(15)
+    items = generate_items(30)
 
-    WIN.fill(BLACK)
 
     while run:
         clock.tick(60)
@@ -91,6 +109,12 @@ def main():
             if event.type == pygame.QUIT:
                 run = False
             
+            if event.type == pygame.KEYDOWN and event.key == pygame.Q:
+                run = False
+
+            play(items)
+            
+            WIN.fill(BLACK)
             for item in items:
                 item.draw(WIN)
 
