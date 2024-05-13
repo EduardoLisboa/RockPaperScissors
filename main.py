@@ -1,33 +1,40 @@
-import os
+from random import randint
 import pygame
+from image import Image
 
 # Initialize the game
 pygame.init()
 
-# Set up the screen
-WIN = pygame.display.set_mode((600, 600))
-pygame.display.set_caption("Rock Paper Scissors - Simulator")
-
-# Set up the colors
+# Set up constants
+WIDTH, HEIGHT = 600, 600
+ITEM_WIDTH, ITEM_HEIGHT = 20, 20
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 
 
-class Scissor:
+# Set up the screen
+WIN = pygame.display.set_mode((WIDTH, HEIGHT))
+pygame.display.set_caption("Rock Paper Scissors - Simulator")
+
+
+class Item:
     WIN_CASES = {
-        'Rock': 'Scissor',
-        'Paper': 'Rock',
-        'Scissor': 'Paper'
+        'r': 's',
+        'p': 'r',
+        's': 'p'
     }
 
-    def __init__(self, name: str, image: pygame.Surface) -> None:
+    def __init__(self, name: str, x: int, y: int) -> None:
         self.name = name
         self.beats = self.WIN_CASES[name]
-        self.image = image
+        self.image = Image.IMAGES[name]
+        self.x = x
+        self.y = y
+        self.width = ITEM_WIDTH
+        self.height = ITEM_HEIGHT
     
     def draw(self, win: pygame.Surface) -> None:
-        WIN.fill(BLACK)
-        win.blit(self.image, (300, 20))
+        win.blit(self.image, (self.x - self.width//2, self.y - self.height//2))
 
     def battle(self, other):
         if self.win(other):
@@ -40,27 +47,52 @@ class Scissor:
         return self.name == other.name
 
 
-def load_image(image_path):
-    image = pygame.image.load(os.path.join("images", image_path))
-    return pygame.transform.scale(image, (25, 25))
+def generate_items(qtd_items: int) -> list[Item]:
+    items = {
+        'r': [],
+        'p': [],
+        's': []
+    }
+    items_list = []
+    for name in ['r', 'p', 's']:
+        for _ in range(qtd_items):
+            if name == 'r':
+                x = randint(25, WIDTH//3 - ITEM_WIDTH)
+                y = randint(2*(HEIGHT//3), HEIGHT - ITEM_HEIGHT)
+            elif name == 'p':
+                x = randint(WIDTH//3, 2*(WIDTH//3) - ITEM_WIDTH)
+                y = randint(0, HEIGHT//3 - ITEM_HEIGHT)
+            else:
+                x = randint(2*(WIDTH//3), WIDTH - ITEM_WIDTH)
+                y = randint(2*(HEIGHT//3), HEIGHT - ITEM_HEIGHT)
+            
+            items[name].append(Item(name, x, y))
+    
+    items_list.extend(items['r'])
+    items_list.extend(items['p'])
+    items_list.extend(items['s'])
+    
+    return items_list
 
 
 def main():
     run = True
     clock = pygame.time.Clock()
 
-    scissor_img = load_image("scissor.png")
-    print(type(scissor_img))
-    scissor = Scissor("Scissor", scissor_img)
+
+    items = generate_items(15)
+
+    WIN.fill(BLACK)
 
     while run:
         clock.tick(60)
-
+        
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
             
-            scissor.draw(WIN)
+            for item in items:
+                item.draw(WIN)
 
         pygame.display.update()
 
