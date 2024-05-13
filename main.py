@@ -35,6 +35,9 @@ class Scissor:
 
     def win(self, other):
         return True if other.name == self.beats else False
+    
+    def __eq__(self, other):
+        return self.name == other.name
 
 
 def load_image(image_path):
