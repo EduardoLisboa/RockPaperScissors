@@ -90,8 +90,10 @@ def generate_items(qtd_items: int) -> list[Item]:
 
 
 def play(items: list[Item]) -> None:
+    WIN.fill(BLACK)
     for item in items:
         item.move()
+        item.draw(WIN)
 
 
 def main():
@@ -114,9 +116,6 @@ def main():
 
             play(items)
             
-            WIN.fill(BLACK)
-            for item in items:
-                item.draw(WIN)
 
         pygame.display.update()
 
