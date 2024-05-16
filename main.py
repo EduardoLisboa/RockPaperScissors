@@ -43,10 +43,10 @@ class Item:
             if self == other or self.name == other.name:
                 continue
             if self.rect_overlap(other):
-                self.change(other.name) if self.win(other) else other.change(self.name)
+                other.change(self.name) if self.win(other) else self.change(other.name)
 
     def win(self, other):
-        return False if self.beats == other.name else True
+        return True if self.beats == other.name else False
     
     def change(self, name):
         self.name = name
@@ -95,7 +95,7 @@ def generate_items(qtd_items: int) -> list[Item]:
                 x = randint(ITEM_WIDTH, WIDTH//2 - 2*ITEM_WIDTH)
                 y = randint(HEIGHT//2, HEIGHT - 2*ITEM_HEIGHT)
             elif name == 'p':
-                x = randint(WIDTH//3, 2*(WIDTH//3) - 2*ITEM_WIDTH)
+                x = randint(WIDTH//4, 3*(WIDTH//4) - 2*ITEM_WIDTH)
                 y = randint(0, HEIGHT//2 - 2*ITEM_HEIGHT)
             else:
                 x = randint(WIDTH//2, WIDTH - 2*ITEM_WIDTH)
@@ -151,7 +151,7 @@ def main():
 
     items = generate_items(50)
 
-
+    move = True
     while run:
         clock.tick(30)
         
@@ -159,11 +159,13 @@ def main():
             if event.type == pygame.QUIT:
                 run = False
             
-            if event.type == pygame.KEYDOWN and event.key == pygame.Q:
-                run = False
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_q:
+                    run = False
+                if event.key == pygame.K_SPACE:
+                    move = not move
 
-
-        play(items)
+        play(items, move)
 
         winner = check_winner(items)
         if winner:
