@@ -169,6 +169,7 @@ def main():
         if winner:
             play(items, move=False)
             print(f'{win_dict[winner]} wins!')
+            pygame.time.delay(3000)
             run = False
 
         pygame.display.update()
