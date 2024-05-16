@@ -114,8 +114,8 @@ def main():
             if event.type == pygame.KEYDOWN and event.key == pygame.Q:
                 run = False
 
-            play(items)
-            
+
+        play(items)
 
         pygame.display.update()
 
