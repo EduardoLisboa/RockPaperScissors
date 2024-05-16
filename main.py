@@ -136,22 +136,29 @@ def check_winner(items) -> None | str:
         return 'r'
     else:
         return None
+    
+
+def handle_win(items):
+    win_dict = {
+        'r': 'Rock',
+        'p': 'Paper',
+        's': 'Scissors'
+    }
+    winner = check_winner(items)
+    if winner:
+        play(items, move=False)
+        print(f'{win_dict[winner]} wins!')
+        pygame.time.delay(3000)
+        return False
+    return True
 
 
 def main():
     run = True
     clock = pygame.time.Clock()
 
-    win_dict = {
-        'r': 'Rock',
-        'p': 'Paper',
-        's': 'Scissors'
-    }
-
-
     items = generate_items(50)
 
-    move = True
     while run:
         clock.tick(30)
         
@@ -159,20 +166,12 @@ def main():
             if event.type == pygame.QUIT:
                 run = False
             
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_q:
-                    run = False
-                if event.key == pygame.K_SPACE:
-                    move = not move
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_q:
+                run = False
 
-        play(items, move)
+        play(items)
 
-        winner = check_winner(items)
-        if winner:
-            play(items, move=False)
-            print(f'{win_dict[winner]} wins!')
-            pygame.time.delay(3000)
-            run = False
+        run = handle_win(items)
 
         pygame.display.update()
 
