@@ -6,8 +6,8 @@ from image import Image
 pygame.init()
 
 # Set up constants
-WIDTH, HEIGHT = 600, 600
-ITEM_WIDTH, ITEM_HEIGHT = 20, 20
+WIDTH, HEIGHT = 700, 700
+ITEM_WIDTH, ITEM_HEIGHT = 25, 25
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 
@@ -24,7 +24,8 @@ class Item:
         's': 'p'
     }
 
-    def __init__(self, name: str, x: int, y: int) -> None:
+    def __init__(self, id: int, name: str, x: int, y: int) -> None:
+        self.id = id
         self.name = name
         self.beats = self.WIN_CASES[name]
         self.image = Image.IMAGES[name]
@@ -32,16 +33,28 @@ class Item:
         self.y = y
         self.width = ITEM_WIDTH
         self.height = ITEM_HEIGHT
+        self.rect = self.get_rect()
     
     def draw(self, win: pygame.Surface) -> None:
-        win.blit(self.image, (self.x - self.width//2, self.y - self.height//2))
+        win.blit(self.image, (self.x, self.y))
 
-    def battle(self, other):
-        if self.win(other):
-            return f"{self.name} wins"
+    def battle(self, others):
+        for other in others:
+            if self == other or self.name == other.name:
+                continue
+            if self.rect_overlap(other):
+                self.change(other.name) if self.win(other) else other.change(self.name)
 
     def win(self, other):
-        return True if other.name == self.beats else False
+        return False if self.beats == other.name else True
+    
+    def change(self, name):
+        self.name = name
+        self.beats = self.WIN_CASES[name]
+        self.image = Image.IMAGES[name]
+
+    def rect_overlap(self, other):
+        return self.rect.colliderect(other.rect)
     
     def move(self):
         self.x += randint(-5, 5)
@@ -56,9 +69,17 @@ class Item:
             self.y = 0
         elif self.y >= HEIGHT - self.height:
             self.y = HEIGHT - self.height
+        
+        self.rect = self.get_rect()
+    
+    def get_rect(self):
+        rect = self.image.get_bounding_rect()
+        rect[0] += self.x
+        rect[1] += self.y
+        return rect
     
     def __eq__(self, other):
-        return self.name == other.name
+        return self.id == other.id
 
 
 def generate_items(qtd_items: int) -> list[Item]:
@@ -68,8 +89,8 @@ def generate_items(qtd_items: int) -> list[Item]:
         's': []
     }
     items_list = []
-    for name in ['r', 'p', 's']:
-        for _ in range(qtd_items):
+    for i, name in enumerate(['r', 'p', 's'], start=1):
+        for j, _ in enumerate(range(qtd_items)):
             if name == 'r':
                 x = randint(ITEM_WIDTH, WIDTH//2 - 2*ITEM_WIDTH)
                 y = randint(HEIGHT//2, HEIGHT - 2*ITEM_HEIGHT)
@@ -80,7 +101,8 @@ def generate_items(qtd_items: int) -> list[Item]:
                 x = randint(WIDTH//2, WIDTH - 2*ITEM_WIDTH)
                 y = randint(HEIGHT//2, HEIGHT - 2*ITEM_HEIGHT)
             
-            items[name].append(Item(name, x, y))
+            id_idx = int(f'{i}{j}')
+            items[name].append(Item(id_idx, name, x, y))
     
     items_list.extend(items['r'])
     items_list.extend(items['p'])
@@ -89,23 +111,49 @@ def generate_items(qtd_items: int) -> list[Item]:
     return items_list
 
 
-def play(items: list[Item]) -> None:
+def play(items: list[Item], move=True) -> None:
     WIN.fill(BLACK)
     for item in items:
-        item.move()
+        if move: item.move()
+        item.battle(items)
         item.draw(WIN)
+
+
+def check_winner(items) -> None | str:
+    counter = {
+        'r': 0,
+        'p': 0,
+        's': 0
+    }
+    for item in items:
+        counter[item.name] += 1
+    
+    if counter['r'] == 0 and counter['p'] == 0:
+        return 's'
+    elif counter['r'] == 0 and counter['s'] == 0:
+        return 'p'
+    elif counter['p'] == 0 and counter['s'] == 0:
+        return 'r'
+    else:
+        return None
 
 
 def main():
     run = True
     clock = pygame.time.Clock()
 
+    win_dict = {
+        'r': 'Rock',
+        'p': 'Paper',
+        's': 'Scissors'
+    }
 
-    items = generate_items(30)
+
+    items = generate_items(50)
 
 
     while run:
-        clock.tick(60)
+        clock.tick(30)
         
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -117,8 +165,15 @@ def main():
 
         play(items)
 
+        winner = check_winner(items)
+        if winner:
+            play(items, move=False)
+            print(f'{win_dict[winner]} wins!')
+            run = False
+
         pygame.display.update()
 
+    
     pygame.quit()
 
 
